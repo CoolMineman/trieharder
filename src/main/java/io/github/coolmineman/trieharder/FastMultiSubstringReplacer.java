@@ -2,13 +2,10 @@ package io.github.coolmineman.trieharder;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.IntStream;
 
 /**
  * Maps old -> replacement strings
@@ -31,7 +28,7 @@ public final class FastMultiSubstringReplacer {
 
     public void replace(Reader in, Writer out) {
         try {
-            trie.doReplacement(in, out);
+            trie.doReplacement(new ReaderCharIn(in), out);
         } catch (IOException e) {
             throw Util.sneak(e);
         }
@@ -39,18 +36,18 @@ public final class FastMultiSubstringReplacer {
 
     // Simple buffer
     static class ReaderBuffer {
-        Reader reader;
+        CharIn reader;
         int[] buffer;
         int bufferPointer;
         int bufferSize;
         int mark;
 
-        ReaderBuffer(Reader reader, int maxSize) {
+        ReaderBuffer(CharIn reader, int maxSize) {
             buffer = new int[maxSize];
             this.reader = reader;
         }
 
-        int read() throws IOException {
+        int read() {
             if (bufferSize > bufferPointer) {
                 return buffer[bufferPointer++];
             } else {
@@ -70,7 +67,7 @@ public final class FastMultiSubstringReplacer {
             bufferPointer = mark;
         }
 
-        int pop() throws IOException {
+        int pop() {
             if (bufferSize > 0) {
                 int r = buffer[0];
                 System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
@@ -82,7 +79,7 @@ public final class FastMultiSubstringReplacer {
             }
         }
 
-        void clear(int amount) throws IOException {
+        void clear(int amount) {
             for (int i = 0; i < amount; i++) pop(); //TODO optimize?
         }
     }
@@ -108,7 +105,7 @@ public final class FastMultiSubstringReplacer {
             if (chars.length > maxDepth) maxDepth = chars.length;
         }
 
-        void doReplacement(Reader in, Writer out) throws IOException {
+        void doReplacement(CharIn in, Writer out) throws IOException {
             ReaderBuffer in2 = new ReaderBuffer(in, maxDepth);
             while (true) {
                 in2.mark();
@@ -116,7 +113,7 @@ public final class FastMultiSubstringReplacer {
                 int depth = 0;
                 int read;
                 boolean readChars = false;
-                while ((read = in2.read()) != -1) {
+                while ((read = in2.read()) >= 0) {
                     readChars = true;
                     char c = (char) read;
                     TrieNode node = current.children.get((Character) c);
