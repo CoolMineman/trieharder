@@ -3,8 +3,8 @@ package io.github.coolmineman.trieharder;
 \u002f\u002f I love java
 \u002f\u002f Excludes comments and strings
 \u002f\u002f https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html
-public class UnicodeEscapeYeeterCharIn implements CharIn {
-    CharIn parent;
+public class UnicodeEscapeYeeterCharIn implements ReplacerCharIn {
+    ReplacerCharIn parent;
 
     enum State {
         NONE,
@@ -15,18 +15,17 @@ public class UnicodeEscapeYeeterCharIn implements CharIn {
     int extraout = 0;
     int[] hex = new int[4];
 
-    public UnicodeEscapeYeeterCharIn(CharIn parent) {
+    public UnicodeEscapeYeeterCharIn(ReplacerCharIn parent) {
         this.parent = parent;
     }
 
     @Override
     public int read() {
-        int r = parent.read();
-        int r2;
         switch (state) {
             case NONE:
+            int r = parent.read();
                 if (r == '\\') {
-                    r2 = parent.read();
+                    int r2 = parent.read();
                     if (r2 == '\\') {
                         state = State.EXTRAOUT;
                         extraout = '\\';

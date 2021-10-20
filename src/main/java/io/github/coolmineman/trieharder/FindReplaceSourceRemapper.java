@@ -24,38 +24,45 @@ import net.fabricmc.mappingio.tree.MappingTree.MethodMapping;
 // Works as long as all the classes methods and fields have unique names that aren't likely to appear in other places
 // Generally should only be used with intermediary mappings -> named
 public final class FindReplaceSourceRemapper {
-    final FastMultiSubstringReplacer replacer;
+    final FastMultiSubstringReplacer replacer = new FastMultiSubstringReplacer();
+
+    public FindReplaceSourceRemapper() { }
 
     public FindReplaceSourceRemapper(MappingTree tree, int src, int dst) {
-        HashMap<String, String> replacements = new HashMap<>();
-        // Load mappings
+        addReplacements(tree, src, dst);
+    }
+
+    public void addReplacements(MappingTree tree, int src, int dst) {
         for (ClassMapping clazz : tree.getClasses()) {
             String srcClazz = clazz.getName(src);
             String dstClazz = clazz.getName(dst);
             if (srcClazz != null && dstClazz != null) {
-                replacements.put(srcClazz.replace('/', '.'), dstClazz.replace('/', '.'));
-                replacements.put(srcClazz.substring(srcClazz.lastIndexOf('/') + 1).replace('$', '.'), dstClazz.substring(dstClazz.lastIndexOf('/') + 1).replace('$', '.'));
+                addReplacement(srcClazz.replace('/', '.'), dstClazz.replace('/', '.'));
+                addReplacement(srcClazz.substring(srcClazz.lastIndexOf('/') + 1).replace('$', '.'), dstClazz.substring(dstClazz.lastIndexOf('/') + 1).replace('$', '.'));
             }
             for (MethodMapping method : clazz.getMethods()) {
                 String srcMethod = method.getName(src);
                 String dstMethod = method.getName(dst);
                 if (srcMethod != null && dstMethod != null) {
-                    replacements.put(srcMethod, dstMethod);
+                    addReplacement(srcMethod, dstMethod);
                 }
             }
             for (FieldMapping field : clazz.getFields()) {
                 String srcField = field.getName(src);
                 String dstField = field.getName(dst);
                 if (srcField != null && dstField != null) {
-                    replacements.put(srcField, dstField);
+                    addReplacement(srcField, dstField);
                 }
             }
         }
-        replacer = new FastMultiSubstringReplacer(replacements);
+    }
+
+    public void addReplacement(String a, String b) {
+        replacer.addReplacement(a, b);
     }
 
     public void remap(Reader in, Writer out) {
-        replacer.replace(in, out);
+        replacer.replace(new CommentStringSkipper(new UnicodeEscapeYeeterCharIn(new ReaderCharIn(in)), out), out);
     }
 
     public void remapSourcesJar(Path in, Path out) {

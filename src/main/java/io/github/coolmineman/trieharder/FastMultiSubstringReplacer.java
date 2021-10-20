@@ -19,16 +19,32 @@ public final class FastMultiSubstringReplacer {
     Trie trie;
     boolean ignoreComments;
 
-    public FastMultiSubstringReplacer(Map<String, String> replacements) {
+    public FastMultiSubstringReplacer() {
         trie = new Trie();
+    }
+
+    public FastMultiSubstringReplacer(Map<String, String> replacements) {
+        this();
+        addReplacements(replacements);
+    }
+
+    public void addReplacements(Map<String, String> replacements) {
         for (Entry<String, String> entry : replacements.entrySet()) {
             trie.insert(entry.getKey(), entry.getValue());
         }
     }
 
-    public void replace(Reader in, Writer out) {
+    public void addReplacement(String a, String b) {
+        trie.insert(a, b);
+    }
+
+    public void replace(Reader in, Appendable out) {
+        replace(new ReaderCharIn(in), out);
+    }
+
+    public void replace(ReplacerCharIn in, Appendable out) {
         try {
-            trie.doReplacement(new ReaderCharIn(in), out);
+            trie.doReplacement(in, out);
         } catch (IOException e) {
             throw Util.sneak(e);
         }
@@ -36,13 +52,13 @@ public final class FastMultiSubstringReplacer {
 
     // Simple buffer
     static class ReaderBuffer {
-        CharIn reader;
+        ReplacerCharIn reader;
         int[] buffer;
         int bufferPointer;
         int bufferSize;
         int mark;
 
-        ReaderBuffer(CharIn reader, int maxSize) {
+        ReaderBuffer(ReplacerCharIn reader, int maxSize) {
             buffer = new int[maxSize];
             this.reader = reader;
         }
@@ -105,7 +121,7 @@ public final class FastMultiSubstringReplacer {
             if (chars.length > maxDepth) maxDepth = chars.length;
         }
 
-        void doReplacement(CharIn in, Writer out) throws IOException {
+        void doReplacement(ReplacerCharIn in, Appendable out) throws IOException {
             ReaderBuffer in2 = new ReaderBuffer(in, maxDepth);
             while (true) {
                 in2.mark();
@@ -113,7 +129,7 @@ public final class FastMultiSubstringReplacer {
                 int depth = 0;
                 int read;
                 boolean readChars = false;
-                while ((read = in2.read()) >= 0) {
+                while ((read = in2.read()) != -1) {
                     readChars = true;
                     char c = (char) read;
                     TrieNode node = current.children.get((Character) c);
@@ -131,10 +147,13 @@ public final class FastMultiSubstringReplacer {
                 }
                 in2.reset();
                 if (current == null) {
-                    out.write(in2.pop());
+                    int o = in2.pop();
+                    if (o >= 0) {
+                        out.append((char)o);
+                    }
                 } else {
                     in2.clear(depth);
-                    out.write(current.replacement);
+                    out.append(current.replacement);
                 }
             }
         }

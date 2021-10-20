@@ -1,6 +1,7 @@
 package io.github.coolmineman.trieharder;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
@@ -43,6 +44,23 @@ class RemapTest {
             assertFalse(remapped.contains("class_"));
             assertFalse(remapped.contains("method_"));
             assertFalse(remapped.contains("field_"));
+        }
+    }
+
+    @Test
+    void advancedTest() throws IOException {
+        try (Reader in = new InputStreamReader(RemapTest.class.getResourceAsStream("/Bruh.java"))) {
+            long start = System.currentTimeMillis();
+            StringWriter w = new StringWriter();
+            remapper.remap(in, w);
+            String remapped = w.toString();
+            System.out.println(remapped);
+            long end = System.currentTimeMillis() - start;
+            System.out.println("Took " + end);
+            assertEquals(
+                "import net.minecraft.util.registry.Registry;\n\npublic class Bruh {\n    String a = \"class_2378\"; // class_2378\n    /* class_2378 */\n    Registry b;\n    String c = \"\"\"\n               class_2378\\n\"\"\";\n    Registry d;\n}\n",
+                remapped
+            );
         }
     }
 }

@@ -3,7 +3,7 @@ package io.github.coolmineman.trieharder;
 import java.io.IOException;
 import java.io.Reader;
 
-public class ReaderCharIn implements CharIn {
+public class ReaderCharIn implements ReplacerCharIn {
     Reader reader;
 
     public ReaderCharIn(Reader reader) {
