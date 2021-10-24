@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import org.junit.jupiter.api.Test;
 
@@ -62,5 +64,28 @@ class RemapTest {
                 remapped
             );
         }
+    }
+
+    @Test
+    void bruh() throws IOException {
+        try (Reader in = new InputStreamReader(RemapTest.class.getResourceAsStream("/ModNioResourcePack.java"))) {
+            long start = System.currentTimeMillis();
+            StringWriter w = new StringWriter();
+            remapper.remap(in, w);
+            String remapped = w.toString();
+            System.out.println(remapped);
+            long end = System.currentTimeMillis() - start;
+            System.out.println("Took " + end);
+            assertFalse(remapped.contains("class_"));
+            assertFalse(remapped.contains("method_"));
+            assertFalse(remapped.contains("field_"));
+        }
+    }
+
+    @Test
+    void ahh() throws IOException {
+        String bruh = remapper.remapString(new String(Base64.getDecoder().decode("IlwiIiBtZXRob2RfMTQzOTM="), StandardCharsets.UTF_8));
+        System.out.println(bruh);
+        assertFalse(bruh.contains("method_"));
     }
 }

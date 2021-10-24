@@ -25,7 +25,7 @@ public class CommentStringSkipper implements ReplacerCharIn {
     State state = State.NONE;
 
     @Override
-    public int read() {
+    public int read() throws IOException {
         switch (state){
             case NONE:
                 return d();
@@ -91,22 +91,25 @@ public class CommentStringSkipper implements ReplacerCharIn {
         
     }
 
-    int d() {
+    int d() throws IOException {
         int r = r();
         if (r == '"') {
             w(r);
-            int r2 = rw();
+            int r2 = r();
             if (r2 == '"') {
+                w(r2);
                 int r3 = r();
                 if (r3 == '"') {
                     w(r3);
                     state = State.TEXT;
                     return -2;
                 } else {
+                    buffer(r3);
                     return -2;
                 }
             } else {
                 state = State.STRING;
+                buffer(r2);
                 return -2;
             }
         } else if (r == '\'') {
@@ -133,29 +136,26 @@ public class CommentStringSkipper implements ReplacerCharIn {
         return r;
     }
 
-    int r() {
+    int r() throws IOException {
         int result;
         if (readbuffersize > 0) {
             result = readbuffer[0];
             readbuffer[0] = readbuffer[1];
             readbuffer[1] = readbuffer[2];
+            readbuffersize--;
         } else {
             result = in.read();
         }
         return result;
     }
 
-    void w(int a) {
-        if (a > 0) {
-            try {
-                out.append((char)a);
-            } catch (IOException e) {
-                throw Util.sneak(e);
-            }
-        }
+    void w(int a) throws IOException {
+        if (a >= 0) out.append((char)a);
+        System.out.println(a);
+        System.out.println((char)a);
     }
 
-    int rw() {
+    int rw() throws IOException {
         int r = r();
         w(r);
         return r;

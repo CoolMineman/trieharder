@@ -2,7 +2,6 @@ package io.github.coolmineman.trieharder;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,7 +62,7 @@ public final class FastMultiSubstringReplacer {
             this.reader = reader;
         }
 
-        int read() {
+        int read() throws IOException {
             if (bufferSize > bufferPointer) {
                 return buffer[bufferPointer++];
             } else {
@@ -83,7 +82,7 @@ public final class FastMultiSubstringReplacer {
             bufferPointer = mark;
         }
 
-        int pop() {
+        int pop() throws IOException {
             if (bufferSize > 0) {
                 int r = buffer[0];
                 System.arraycopy(buffer, 1, buffer, 0, buffer.length - 1);
@@ -95,7 +94,7 @@ public final class FastMultiSubstringReplacer {
             }
         }
 
-        void clear(int amount) {
+        void clear(int amount) throws IOException {
             for (int i = 0; i < amount; i++) pop(); //TODO optimize?
         }
     }
