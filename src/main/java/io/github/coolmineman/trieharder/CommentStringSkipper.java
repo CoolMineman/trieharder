@@ -151,8 +151,6 @@ public class CommentStringSkipper implements ReplacerCharIn {
 
     void w(int a) throws IOException {
         if (a >= 0) out.append((char)a);
-        System.out.println(a);
-        System.out.println((char)a);
     }
 
     int rw() throws IOException {
